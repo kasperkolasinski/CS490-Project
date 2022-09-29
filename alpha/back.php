@@ -1,59 +1,54 @@
 <?php
 
+/*
+	Kasper Kolasinski, Group 11
+	CS490-105
+	Alpha: Back End
+*/
+
+//File containing login info for database
 include ("account.php");
 
+//Connect to database
 $db = mysqli_connect($hostname, $username, $password, $project);
 
+//Connection Error
 if (mysqli_connect_errno())
   {
 	  echo "Failed to connect to MySQL: " . mysqli_connect_error();
 	  exit();
   }
-//print "Successfully connected to MySQL.<br><br><br>";
 
+//Select database
 mysqli_select_db($db, $project);
 
-//$ch = curl_init("https://afsaccess4.njit.edu/~dfs23/alpha/middle.php");
+//Receive post fields from middle
+$userinp = $_POST['username'];
+$passinp = $_POST['password'];
 
-//curl_setopt();
-
-//curl_close($ch);
-
-$unamepost = $_POST['username'];
-$passpost = $_POST['password'];
-
-//echo "<br>$unamepost<br>";
-
-//echo "<br>CURL succeeded i guess lole";
-
-$userinp = "$unamepost";
-//$userinp = "jgrish985";
-$passinp = hash('sha256', "$passpost");
-
+//SQL query to retrieve data from database table
 $s = "SELECT Name, Role 
 		FROM alpha
 		WHERE Username='$userinp' AND Password='$passinp'";
-//echo "<br>sql insert: $s <br><br>";
-($result = mysqli_query($db, $s))  or  die( mysqli_error($db) );
-//echo "<br>SQL succeeded";
 
+//Sends query ~ stores result or gives error
+($result = mysqli_query($db, $s))  or  die( mysqli_error($db) );
+
+//If result has data
 if (mysqli_num_rows($result) > 0) {
-  // output data of each row
   while($row = mysqli_fetch_assoc($result)) {
-    //echo "<br>Name: " . $row["Name"] . "<br>";
 	$valid = 1; 
 	$role = $row["Role"];
 	$name = $row["Name"];
   }
 } else { //no results
-  //echo "<br>0 results";
-  $valid = 0; $role = NULL; $name = NULL;
+	$valid = 0; $role = NULL; $name = NULL;
 }
 
-mysqli_close($db);
+//Closes connection
+mysqli_close($db); 
 
-//echo $role; 
-
+//Stores data into array and echoes json encoding
 $data = ['valid' => $valid, 'role' => $role, 'name' => $name];
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode($data);
